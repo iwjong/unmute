@@ -28,8 +28,8 @@ pub struct FrameMetadata {
     /// Native timestamp converted to nanoseconds; its epoch is identified by capture_clock.
     pub capture_timestamp_ns: u64,
     pub capture_clock: CaptureClock,
-    /// Time of the first sample relative to the shared monotonic session origin.
-    pub timeline_timestamp_ns: u64,
+    /// First sample relative to the shared origin; buffered pre-origin samples may be negative.
+    pub timeline_timestamp_ns: i64,
     /// Monotonically increasing per source; a gap signals missing frames.
     pub sequence: u64,
     pub discontinuity: bool,

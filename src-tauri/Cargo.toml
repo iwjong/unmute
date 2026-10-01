@@ -2,11 +2,32 @@
 name = "unmute"
 version = "0.1.0"
 edition = "2021"
+default-run = "unmute"
+
+[features]
+default = ["desktop"]
+desktop = ["dep:tauri", "dep:tauri-build"]
+
+[[bin]]
+name = "unmute"
+path = "src/main.rs"
+required-features = ["desktop"]
+
+[[bin]]
+name = "audio-diag"
+path = "src/bin/audio-diag.rs"
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2", features = [], optional = true }
+cc = "1"
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["macos-private-api"], optional = true }
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rubato = "0.16"
+rustfft = "6"
+ctrlc = { version = "3", features = ["termination"] }
 
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.62.2", features = ["Win32_Media_Audio", "Win32_System_Com", "Win32_System_Com_StructuredStorage", "Win32_System_Variant", "Win32_System_Performance", "Win32_System_ProcessStatus", "Win32_System_Threading", "Win32_UI_Shell_PropertiesSystem", "Win32_Devices_FunctionDiscovery"] }

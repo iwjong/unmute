@@ -18,3 +18,11 @@ dl { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 14px; 
 dt { color: #a4b5bf; } dd { margin: 0; overflow-wrap: anywhere; }
 footer { margin-top: 28px; color: #a4b5bf; font-size: 13px; }
 @media (max-width: 600px) { .sources { grid-template-columns: 1fr; } header { align-items: start; flex-direction: column; } }
+.controls { margin-top: 20px; }
+label { display: block; margin: 14px 0; line-height: 1.5; }
+input { margin-right: 8px; accent-color: #96ead2; }
+.buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+button { padding: 10px 16px; border: 1px solid #96ead2; border-radius: 8px; background: #1c3530; color: #e7edf2; font: inherit; cursor: pointer; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button:focus-visible, input:focus-visible { outline: 3px solid #f0d293; outline-offset: 3px; }
+.path { overflow-wrap: anywhere; }

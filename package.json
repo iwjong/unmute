@@ -6,7 +6,8 @@
     "dev": "vite --host 127.0.0.1 --port 1420 --strictPort",
     "build": "tsc && vite build",
     "tauri": "tauri",
-    "test": "cargo test --manifest-path src-tauri/Cargo.toml"
+    "test": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "test:meeting": "node scripts/test-meeting.mjs"
   },
   "repository": {
     "type": "git",

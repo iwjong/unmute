@@ -1,0 +1,15 @@
+{
+  "identifier": "meeting-window",
+  "description": "Native controls for the floating Meeting Copilot window.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-close",
+    "core:window:allow-set-size",
+    "core:window:allow-set-min-size",
+    "core:window:allow-set-resizable"
+  ]
+}

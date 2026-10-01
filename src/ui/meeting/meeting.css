@@ -1,0 +1,51 @@
+:root { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #fff; background: transparent; font-synthesis: none; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; height: 100%; background: transparent; }
+button, input { font: inherit; }
+.meeting { height: 100dvh; position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: 10px; background: rgb(15 18 22 / var(--surface-opacity)); color: #fff; text-shadow: 0 1px 3px #000, 0 0 2px #000, 0 0 8px #0008; }
+.meeting button { cursor: pointer; color: inherit; border: 0; background: transparent; text-shadow: inherit; }
+.meeting button:disabled { cursor: wait; color: #a6adb5; }
+.meeting button:hover { color: #bfeadf; }
+.meeting button:focus-visible, .meeting input:focus-visible, .meeting summary:focus-visible, .conversation-scroll:focus-visible, .response-region:focus-visible { outline: 2px solid #c6ecdf; outline-offset: -2px; border-radius: 5px; }
+.window-bar { height: 34px; flex-shrink: 0; display: flex; padding: 2px 7px; user-select: none; }
+.drag-handle { flex: 1; cursor: grab; min-width: 50px; display: flex; align-items: center; padding-left: 7px; }
+.drag-handle:active { cursor: grabbing; }
+.window-controls { display: flex; }
+.window-controls, .drag-handle span { opacity: 0; }
+.meeting:hover .window-controls, .meeting:focus-within .window-controls, .meeting:hover .drag-handle span, .meeting:focus-within .drag-handle span, .is-collapsed .window-controls, .menu-open .window-controls { opacity: 1; }
+.icon-button { width: 30px; height: 30px; border-radius: 5px; font-size: 21px; line-height: 1; }
+.expanded-content { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0 20px 16px; gap: 18px; }
+.expanded-content[hidden] { display: none; }
+.conversation-region { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; }
+.conversation-scroll { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; overflow-anchor: none; flex: 1; }
+.conversation-scroll::-webkit-scrollbar { display: none; }
+.transcript { margin: 0; }
+.turn { font-size: 14px; line-height: 1.45; color: #e0e4e8; margin: 0; overflow-wrap: anywhere; }
+.turn.partial { color: #bbc5ce; }
+.response-region { flex-shrink: 0; max-height: 68%; overflow-y: auto; scrollbar-width: none; }
+.response-region:empty { height: 68px; }
+.suggestion { color: #fff; font-size: 18px; font-weight: 550; letter-spacing: -.025em; line-height: 1.38; margin: 0; overflow-wrap: anywhere; }
+.start-button { display: block; margin: 36px auto 0; padding: 8px 16px; font-size: 15px; }
+.preparing { margin: 36px 0 0; text-align: center; font-size: 13px; }
+.latest-button { position: absolute; right: 0; bottom: 0; font-size: 22px; padding: 3px 10px; }
+.meeting-menu { position: absolute; z-index: 3; top: 36px; right: 12px; left: 12px; bottom: 12px; overflow-y: auto; padding: 12px; scrollbar-width: thin; }
+.menu-open .expanded-content { visibility: hidden; }
+.transparency-control { display: block; font-size: 13px; }
+.transparency-control output { float: right; font-variant-numeric: tabular-nums; }
+.transparency-control input { display: block; width: 100%; margin: 16px 0 10px; appearance: none; -webkit-appearance: none; height: 22px; background: transparent; border-radius: 0; cursor: pointer; }
+.meeting-menu button { display: block; text-align: left; padding: 8px 0; font-size: 13px; }
+.meeting-menu summary { cursor: pointer; font-size: 12px; margin-top: 10px; padding: 6px 0; }
+.error-detail { font-size: 11px; overflow-wrap: anywhere; }
+.window-error { display: flex; justify-content: space-between; color: #ffe0d7; font-size: 12px; }
+.is-collapsed .window-bar { height: 40px; align-items: center; }
+@media (max-height: 240px) { .expanded-content { padding-bottom: 10px; gap: 10px; } .suggestion { font-size: 16px; } .turn { font-size: 13px; } .response-region:empty { height: 30px; } }
+
+.transparency-control input:focus-visible { border-radius: 0; }
+.transparency-control input::-webkit-slider-runnable-track { height: 6px; background: #b5c1c8; border: 0; border-radius: 0; }
+.transparency-control input::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 20px; margin-top: -7px; border: 0; border-radius: 0; background: #fff; }
+.transparency-control input::-moz-range-track { height: 6px; background: #b5c1c8; border: 0; border-radius: 0; }
+.transparency-control input::-moz-range-thumb { width: 12px; height: 20px; border: 0; border-radius: 0; background: #fff; }
+.response-options { margin: 0; padding-left: 20px; }
+.response-options li { padding-left: 3px; margin-bottom: 10px; }
+.response-options li:last-child { margin-bottom: 0; }
+.response-options li::marker { font-size: 11px; color: #b7c3cc; }

@@ -18,6 +18,10 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: npm ci
       - run: npm run build
+      - run: npm run test:meeting
       - run: cargo test --locked --manifest-path src-tauri/Cargo.toml
+      - run: cargo test --locked --manifest-path src-tauri/Cargo.toml --no-default-features
+      - run: cargo build --locked --manifest-path src-tauri/Cargo.toml --no-default-features --bin audio-diag
+      - run: python scripts/test-analysis.py
       - run: npm run tauri -- build --no-bundle
-      # Hardware acceptance is tracked separately in M0-ACCEPTANCE.md.
+      # Hardware acceptance is tracked separately in docs/M0-ACCEPTANCE.md.

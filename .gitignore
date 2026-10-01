@@ -1,8 +1,32 @@
+# Build outputs
 node_modules/
 dist/
 target/
 src-tauri/gen/
+src-tauri/resources/local-runtime/
+
+# Local environment
 .DS_Store
+.env
+.env.*
+.venv-stt/
+__pycache__/
+
+# Captures and generated evidence
 recordings/
 *.wav
+artifacts/
+reports/
+fixtures/
 
+# Notes and design docs. README stays tracked; the Qwen license is copied into the app at build time.
+*.md
+!README.md
+docs/*
+!docs/licenses/
+docs/licenses/*
+!docs/licenses/Qwen3-LICENSE
+
+# Local tooling. src-tauri/build.rs runs the runtime bundler.
+scripts/*
+!scripts/bundle-local-runtime.py
