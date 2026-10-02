@@ -6,7 +6,7 @@ button, input { font: inherit; }
 .meeting button { cursor: pointer; color: inherit; border: 0; background: transparent; text-shadow: inherit; }
 .meeting button:disabled { cursor: wait; color: #a6adb5; }
 .meeting button:hover { color: #bfeadf; }
-.meeting button:focus-visible, .meeting input:focus-visible, .meeting summary:focus-visible, .conversation-scroll:focus-visible, .response-region:focus-visible { outline: 2px solid #c6ecdf; outline-offset: -2px; border-radius: 5px; }
+.meeting button:focus-visible, .meeting input:focus-visible, .meeting summary:focus-visible, .conversation-scroll:focus-visible, .message:focus-visible { outline: 2px solid #c6ecdf; outline-offset: -2px; border-radius: 5px; }
 .window-bar { height: 34px; flex-shrink: 0; display: flex; padding: 2px 7px; user-select: none; }
 .drag-handle { flex: 1; cursor: grab; min-width: 50px; display: flex; align-items: center; padding-left: 7px; }
 .drag-handle:active { cursor: grabbing; }
@@ -19,11 +19,8 @@ button, input { font: inherit; }
 .conversation-region { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; }
 .conversation-scroll { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; overflow-anchor: none; flex: 1; }
 .conversation-scroll::-webkit-scrollbar { display: none; }
-.transcript { margin: 0; }
 .turn { font-size: 14px; line-height: 1.45; color: #e0e4e8; margin: 0; overflow-wrap: anywhere; }
 .turn.partial { color: #bbc5ce; }
-.response-region { flex-shrink: 0; max-height: 68%; overflow-y: auto; scrollbar-width: none; }
-.response-region:empty { height: 68px; }
 .suggestion { color: #fff; font-size: 18px; font-weight: 550; letter-spacing: -.025em; line-height: 1.38; margin: 0; overflow-wrap: anywhere; }
 .start-button { display: block; margin: 36px auto 0; padding: 8px 16px; font-size: 15px; }
 .preparing { margin: 36px 0 0; text-align: center; font-size: 13px; }
@@ -49,3 +46,11 @@ button, input { font: inherit; }
 .response-options li { padding-left: 3px; margin-bottom: 10px; }
 .response-options li:last-child { margin-bottom: 0; }
 .response-options li::marker { font-size: 11px; color: #b7c3cc; }
+.message { width: 88%; margin: 0 0 20px; }
+.message.remote { margin-right: auto; text-align: left; }
+.message.you { margin-left: auto; text-align: left; }
+.message.you > .turn { font-size: 17px; color: #fff; }
+.said-button { font-size: 11px; padding: 4px 0; color: #bbc5ce !important; }
+.said-button[aria-pressed="true"] { color: #bfeadf !important; }
+.meeting-actions { flex-shrink: 0; display: flex; justify-content: space-between; gap: 12px; }
+.meeting-actions button { padding: 4px 0; font-size: 12px; }

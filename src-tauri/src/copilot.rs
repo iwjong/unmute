@@ -10,6 +10,19 @@ use std::{
 use tauri::{Emitter, Manager};
 
 #[tauri::command]
+pub fn control_copilot(state: tauri::State<AppState>, action: String) -> Result<(), String> {
+    if !["pause", "resume", "suggest"].contains(&action.as_str()) {
+        return Err("Unknown meeting action".into());
+    }
+    let slot = state.session.lock().map_err(|e| e.to_string())?;
+    slot.as_ref()
+        .and_then(|s| s.control.as_ref())
+        .ok_or("Start listening first")?
+        .send(action)
+        .map_err(|_| "Meeting process stopped".into())
+}
+
+#[tauri::command]
 pub fn start_copilot(app: tauri::AppHandle, state: tauri::State<AppState>) -> Result<(), String> {
     use std::os::unix::fs::PermissionsExt;
     use unmute::macos::{MacAudioBackend, Options};
@@ -55,6 +68,7 @@ pub fn start_copilot(app: tauri::AppHandle, state: tauri::State<AppState>) -> Re
     let output = child.stdout.take().unwrap();
     let stop = Arc::new(AtomicBool::new(false));
     let flag = stop.clone();
+    let (control, commands) = std::sync::mpsc::channel::<String>();
     let thread = std::thread::spawn(move || {
         let model_ready = Arc::new(AtomicBool::new(false));
         let model_reader = model_ready.clone();
@@ -64,10 +78,15 @@ pub fn start_copilot(app: tauri::AppHandle, state: tauri::State<AppState>) -> Re
         let events = app.clone();
         let helper_error = Arc::new(std::sync::Mutex::new(None::<String>));
         let reader_error = helper_error.clone();
+        let capture_id = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+            .to_string();
         let reader = std::thread::spawn(move || {
             for line in BufReader::new(output).lines() {
                 let Ok(line) = line else { break };
-                if let Ok(event) = serde_json::from_str::<Value>(&line) {
+                if let Ok(mut event) = serde_json::from_str::<Value>(&line) {
                     if event["type"] == "model_ready" {
                         model_reader.store(true, Ordering::Relaxed);
                         continue;
@@ -80,18 +99,48 @@ pub fn start_copilot(app: tauri::AppHandle, state: tauri::State<AppState>) -> Re
                         ready_reader.store(true, Ordering::Relaxed);
                         continue;
                     }
+                    if event["type"] == "transcript" {
+                        event["id"] = json!(format!(
+                            "{}:{}",
+                            capture_id,
+                            event["id"].as_str().unwrap_or("")
+                        ));
+                    }
+                    if let Some(id) = event["context_id"].as_str() {
+                        event["context_id"] = json!(format!("{}:{}", capture_id, id));
+                    }
                     let _ = events.emit("copilot", event);
                 }
             }
         });
         let (sender, receiver) =
             std::sync::mpsc::sync_channel::<(unmute::audio::FrameMetadata, Vec<u8>)>(100);
+        let (writer_commands, writer_requests) = std::sync::mpsc::channel::<i64>();
         let writer = std::thread::spawn(move || -> std::io::Result<()> {
             let mut input = input;
-            for (metadata, pcm) in receiver {
-                input.write_all(&metadata.timeline_timestamp_ns.to_le_bytes())?;
-                input.write_all(&(pcm.len() as u32).to_le_bytes())?;
-                input.write_all(&pcm)?;
+            let mut origin = None;
+            loop {
+                // Audio drains before a pause marker; capture is already stopped at that point.
+                match receiver.recv_timeout(std::time::Duration::from_millis(10)) {
+                    Ok((metadata, pcm)) => {
+                        let base = *origin.get_or_insert(metadata.capture_timestamp_ns);
+                        let timestamp = metadata
+                            .capture_timestamp_ns
+                            .checked_sub(base)
+                            .ok_or_else(|| std::io::Error::other("Capture clock moved backwards"))?
+                            as i64;
+                        input.write_all(&timestamp.to_le_bytes())?;
+                        input.write_all(&(pcm.len() as u32).to_le_bytes())?;
+                        input.write_all(&pcm)?;
+                    }
+                    Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => break,
+                    Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+                        for command in writer_requests.try_iter() {
+                            input.write_all(&command.to_le_bytes())?;
+                            input.write_all(&0u32.to_le_bytes())?;
+                        }
+                    }
+                }
             }
             Ok(())
         });
@@ -142,12 +191,16 @@ pub fn start_copilot(app: tauri::AppHandle, state: tauri::State<AppState>) -> Re
                 }
                 std::thread::sleep(std::time::Duration::from_millis(50));
             }
-            let mut backend = MacAudioBackend::start(Options {
-                telemetry: telemetry.clone(),
-                recordings: None,
-                system_audio_confirmed: true,
-            })?;
-            backend.set_remote_sink(sender.clone());
+            let start_backend = || -> Result<MacAudioBackend, String> {
+                let mut backend = MacAudioBackend::start(Options {
+                    telemetry: telemetry.clone(),
+                    recordings: None,
+                    system_audio_confirmed: true,
+                })?;
+                backend.set_remote_sink(sender.clone());
+                Ok(backend)
+            };
+            let mut backend = Some(start_backend()?);
             let _ = app.emit("copilot", json!({"type":"status","status":"Listening"}));
             while !flag.load(Ordering::Relaxed) {
                 if child.try_wait().map_err(|e| e.to_string())?.is_some() {
@@ -162,9 +215,39 @@ pub fn start_copilot(app: tauri::AppHandle, state: tauri::State<AppState>) -> Re
                 {
                     return Err("Local response runtime stopped. Restart listening.".into());
                 }
-                backend.poll(std::time::Duration::from_millis(20))?;
+                for command in commands.try_iter() {
+                    match command.as_str() {
+                        "pause" => {
+                            if let Some(mut capture) = backend.take() {
+                                capture.stop()?;
+                                writer_commands.send(-1).map_err(|e| e.to_string())?;
+                            }
+                        }
+                        "resume" => {
+                            if backend.is_none() {
+                                backend = Some(start_backend()?);
+                                let _ = app
+                                    .emit("copilot", json!({"type":"status","status":"Listening"}));
+                            }
+                        }
+                        "suggest" => {
+                            writer_commands.send(-2).map_err(|e| e.to_string())?;
+                        }
+                        _ => {}
+                    }
+                }
+                if writer.is_finished() {
+                    return Err("Speech input pipe stopped".into());
+                }
+                if let Some(capture) = backend.as_mut() {
+                    capture.poll(std::time::Duration::from_millis(20))?;
+                } else {
+                    std::thread::sleep(std::time::Duration::from_millis(20));
+                }
             }
-            backend.stop()?;
+            if let Some(mut capture) = backend {
+                capture.stop()?;
+            }
             Ok(())
         })();
         // Both processes belong to this session; cancellation and startup failure reap both.
@@ -185,6 +268,7 @@ pub fn start_copilot(app: tauri::AppHandle, state: tauri::State<AppState>) -> Re
         let _ = app.emit("copilot", json!({"type":"status","status":"Stopped"}));
     });
     *slot = Some(Session {
+        control: Some(control),
         stop,
         thread: Some(thread),
     });

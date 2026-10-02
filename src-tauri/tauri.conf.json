@@ -13,6 +13,7 @@
     "windows": [
       {
         "label": "main",
+        "visible": false,
         "title": "Unmute \u00b7 Meeting Copilot",
         "width": 480,
         "height": 320,

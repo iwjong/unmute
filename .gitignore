@@ -30,3 +30,7 @@ docs/licenses/*
 # Local tooling. src-tauri/build.rs runs the runtime bundler.
 scripts/*
 !scripts/bundle-local-runtime.py
+
+# Meeting behavior checks are part of the product regression suite.
+!scripts/test-meeting.mjs
+!scripts/test-local-copilot.py

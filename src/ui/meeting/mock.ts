@@ -1,5 +1,5 @@
 // Deterministic UX fixtures only. Replace this module with real conversation events at M1/M2.
-export type Turn = { id: string; speaker: 'REMOTE' | 'YOU'; text: string; status: 'PARTIAL' | 'FINAL' };
+export type Turn = { id: string; speaker: 'REMOTE' | 'YOU'; text: string; status: 'PARTIAL' | 'FINAL'; options?: ResponseOption[]; saidKind?: ResponseOption['kind']; contextId?: string };
 export type SayState = 'IDLE' | 'THINKING' | 'READY' | 'STALE' | 'ERROR';
 export type ResponseOption = { kind: 'question' | 'agreement' | 'idea' | 'next_step'; text: string };
 export type MeetingState = { turns: Turn[]; say: { state: SayState; text?: string; options?: ResponseOption[] } };
